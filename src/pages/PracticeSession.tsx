@@ -4,6 +4,8 @@ import { numbersData } from '../data/numbers';
 import { useStore } from '../store/useStore';
 import { Mic, Check, X, ArrowRight } from 'lucide-react';
 
+import { transliterate } from '../utils/transliterate';
+
 const PracticeSession = () => {
   const { lang, level } = useParams();
   const navigate = useNavigate();
@@ -50,13 +52,15 @@ const PracticeSession = () => {
   const checkAnswer = (answer: string) => {
     if (feedback !== 'idle' || !currentNum) return;
     
-    const ans = answer.trim();
+    const ans = answer.trim().toLowerCase();
     let isCorrect = false;
 
     if (level === 'easy') {
       isCorrect = ans === currentNum.english.toString();
     } else if (level === 'medium') {
-      isCorrect = ans === (lang === 'gu' ? currentNum.gujaratiName : currentNum.hindiName);
+      const correctWord = lang === 'gu' ? currentNum.gujaratiName : currentNum.hindiName;
+      const validAnswers = transliterate(correctWord);
+      isCorrect = validAnswers.includes(ans) || ans === correctWord;
     } else if (level === 'hard') {
       // Speech API might return "16", "૧૬", "१६", or the word itself.
       const validAnswers = [
@@ -150,7 +154,7 @@ const PracticeSession = () => {
               onChange={(e) => setUserInput(e.target.value)}
               disabled={feedback !== 'idle'}
               className="w-full text-center text-2xl p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-indigo-500"
-              placeholder={`Type in ${lang === 'gu' ? 'Gujarati' : 'Hindi'}...`}
+              placeholder={`Type in ${lang === 'gu' ? 'Gujarati' : 'Hindi'} (or English spelling)...`}
               onKeyDown={(e) => e.key === 'Enter' && checkAnswer(userInput)}
             />
             <button
