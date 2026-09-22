@@ -22,7 +22,7 @@ function App() {
           <Route path="/learn-numbers" element={<LearnNumbers />} />
           <Route path="/learn-months" element={<LearnMonths />} />
           <Route path="/practice" element={<PracticeMenu />} />
-          <Route path="/practice/:level" element={<PracticeSession />} />
+          <Route path="/practice/:lang/:level" element={<PracticeSession />} />
         </Route>
       </Routes>
     </Router>
