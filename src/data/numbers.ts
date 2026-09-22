@@ -1,0 +1,32 @@
+// Starting with 1-20 and multiples of 10 up to 100 to demonstrate the structure.
+// This is designed so all numbers up to 100 (and beyond) can be easily added.
+export const numbersData = [
+  { english: 1, gujarati: '૧', gujaratiName: 'એક', hindi: '१', hindiName: 'एक' },
+  { english: 2, gujarati: '૨', gujaratiName: 'બે', hindi: '२', hindiName: 'दो' },
+  { english: 3, gujarati: '૩', gujaratiName: 'ત્રણ', hindi: '३', hindiName: 'तीन' },
+  { english: 4, gujarati: '૪', gujaratiName: 'ચાર', hindi: '४', hindiName: 'चार' },
+  { english: 5, gujarati: '૫', gujaratiName: 'પાંચ', hindi: '५', hindiName: 'पाँच' },
+  { english: 6, gujarati: '૬', gujaratiName: 'છ', hindi: '६', hindiName: 'छह' },
+  { english: 7, gujarati: '૭', gujaratiName: 'સાત', hindi: '७', hindiName: 'सात' },
+  { english: 8, gujarati: '૮', gujaratiName: 'આઠ', hindi: '८', hindiName: 'आठ' },
+  { english: 9, gujarati: '૯', gujaratiName: 'નવ', hindi: '९', hindiName: 'नौ' },
+  { english: 10, gujarati: '૧૦', gujaratiName: 'દસ', hindi: '१०', hindiName: 'दस' },
+  { english: 11, gujarati: '૧૧', gujaratiName: 'અગિયાર', hindi: '११', hindiName: 'ग्यारह' },
+  { english: 12, gujarati: '૧૨', gujaratiName: 'બાર', hindi: '१२', hindiName: 'बारह' },
+  { english: 13, gujarati: '૧૩', gujaratiName: 'તેર', hindi: '१३', hindiName: 'तेरह' },
+  { english: 14, gujarati: '૧૪', gujaratiName: 'ચૌદ', hindi: '१४', hindiName: 'चौदह' },
+  { english: 15, gujarati: '૧૫', gujaratiName: 'પંદર', hindi: '१५', hindiName: 'पंद्रह' },
+  { english: 16, gujarati: '૧૬', gujaratiName: 'સોળ', hindi: '१६', hindiName: 'सोलह' },
+  { english: 17, gujarati: '૧૭', gujaratiName: 'સત્તર', hindi: '१७', hindiName: 'सत्रह' },
+  { english: 18, gujarati: '૧૮', gujaratiName: 'અઢાર', hindi: '१८', hindiName: 'अट्ठारह' },
+  { english: 19, gujarati: '૧૯', gujaratiName: 'ઓગણીસ', hindi: '१९', hindiName: 'उन्नीस' },
+  { english: 20, gujarati: '૨૦', gujaratiName: 'વીસ', hindi: '२०', hindiName: 'बीस' },
+  { english: 30, gujarati: '૩૦', gujaratiName: 'ત્રીસ', hindi: '३०', hindiName: 'तीस' },
+  { english: 40, gujarati: '૪૦', gujaratiName: 'ચાલીસ', hindi: '४०', hindiName: 'चालीस' },
+  { english: 50, gujarati: '૫૦', gujaratiName: 'પચાસ', hindi: '५०', hindiName: 'पचास' },
+  { english: 60, gujarati: '૬૦', gujaratiName: 'સાઇઠ', hindi: '६०', hindiName: 'साठ' },
+  { english: 70, gujarati: '૭૦', gujaratiName: 'સિત્તેર', hindi: '७०', hindiName: 'सत्तर' },
+  { english: 80, gujarati: '૮૦', gujaratiName: 'એંસી', hindi: '८०', hindiName: 'अस्सी' },
+  { english: 90, gujarati: '૯૦', gujaratiName: 'નેવું', hindi: '९०', hindiName: 'नब्बे' },
+  { english: 100, gujarati: '૧૦૦', gujaratiName: 'સો', hindi: '१००', hindiName: 'सौ' }
+];
