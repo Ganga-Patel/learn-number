@@ -50,9 +50,24 @@ const PracticeSession = () => {
   const checkAnswer = (answer: string) => {
     if (feedback !== 'idle' || !currentNum) return;
     
-    const isCorrect = level === 'easy' 
-      ? answer === currentNum.english.toString()
-      : answer.trim() === (lang === 'gu' ? currentNum.gujaratiName : currentNum.hindiName);
+    const ans = answer.trim();
+    let isCorrect = false;
+
+    if (level === 'easy') {
+      isCorrect = ans === currentNum.english.toString();
+    } else if (level === 'medium') {
+      isCorrect = ans === (lang === 'gu' ? currentNum.gujaratiName : currentNum.hindiName);
+    } else if (level === 'hard') {
+      // Speech API might return "16", "૧૬", "१६", or the word itself.
+      const validAnswers = [
+        currentNum.english.toString(),
+        currentNum.gujarati,
+        currentNum.hindi,
+        currentNum.gujaratiName,
+        currentNum.hindiName
+      ];
+      isCorrect = validAnswers.includes(ans);
+    }
 
     setFeedback(isCorrect ? 'correct' : 'incorrect');
     recordAttempt(isCorrect);
