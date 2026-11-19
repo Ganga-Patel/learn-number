@@ -1,71 +1,429 @@
-import React from 'react';
+import { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { motion } from 'framer-motion';
-import { Trophy, Target, BookCheck, CalendarDays } from 'lucide-react';
+import {
+  Trophy,
+  Target,
+  BookCheck,
+  CalendarDays,
+  Flame,
+  ArrowRight,
+  Volume2,
+  Sparkles,
+  Award,
+  Layers,
+  Gamepad2,
+  Search
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { numbersData } from '../data/numbers';
+import { speakText } from '../utils/speech';
+import { playSound } from '../utils/sound';
 
 const Dashboard = () => {
-  const { progress } = useStore();
-  
-  const accuracy = progress.totalAttempts > 0 
-    ? Math.round((progress.correctAttempts / progress.totalAttempts) * 100) 
+  const { username, progress, audioSpeed } = useStore();
+  const [quickSearch, setQuickSearch] = useState('');
+  const [activeVoiceNumber, setActiveVoiceNumber] = useState<number | null>(null);
+
+  const accuracy = progress.totalAttempts > 0
+    ? Math.round((progress.correctAttempts / progress.totalAttempts) * 100)
     : 0;
 
+  const totalScore = (progress.scores.easy || 0) + (progress.scores.medium || 0) + (progress.scores.hard || 0);
+
+  const numCount = progress.numbersLearned.length;
+  const monthCount = progress.monthsLearned.length;
+
+  const handleSpeak = async (num: (typeof numbersData)[0], lang: 'gu' | 'hi') => {
+    playSound('click');
+    setActiveVoiceNumber(num.english);
+    await speakText(lang === 'gu' ? num.gujaratiName : num.hindiName, lang, audioSpeed);
+    setActiveVoiceNumber(null);
+  };
+
+  const filteredNumbers = quickSearch.trim()
+    ? numbersData.filter((item) => {
+        const query = quickSearch.trim().toLowerCase();
+        return (
+          item.english.toString() === query ||
+          item.gujarati.includes(query) ||
+          item.hindi.includes(query) ||
+          item.gujaratiName.toLowerCase().includes(query) ||
+          item.hindiName.toLowerCase().includes(query) ||
+          item.gujaratiTranslit.toLowerCase().includes(query) ||
+          item.hindiTranslit.toLowerCase().includes(query)
+        );
+      }).slice(0, 4)
+    : [];
+
+  const achievements = [
+    {
+      id: 'first-num',
+      name: 'First Step',
+      desc: 'Learn your first number',
+      icon: '🌱',
+      unlocked: numCount >= 1,
+    },
+    {
+      id: 'ten-nums',
+      name: 'Double Digits',
+      desc: 'Master 10 numbers',
+      icon: '🔟',
+      unlocked: numCount >= 10,
+    },
+    {
+      id: 'fifty-nums',
+      name: 'Halfway Hero',
+      desc: 'Master 50 numbers',
+      icon: '⚡',
+      unlocked: numCount >= 50,
+    },
+    {
+      id: 'century',
+      name: 'Century Club',
+      desc: 'Learn all 100 numbers',
+      icon: '💯',
+      unlocked: numCount >= 100,
+    },
+    {
+      id: 'calendar',
+      name: 'Calendar Scholar',
+      desc: 'Learn 12 months',
+      icon: '🗓️',
+      unlocked: monthCount >= 12,
+    },
+    {
+      id: 'streak',
+      name: 'On Fire',
+      desc: 'Reach a 5-streak in practice',
+      icon: '🔥',
+      unlocked: (progress.bestStreak || 0) >= 5,
+    },
+    {
+      id: 'accuracy',
+      name: 'Sharp Mind',
+      desc: '80%+ accuracy (10+ attempts)',
+      icon: '🎯',
+      unlocked: progress.totalAttempts >= 10 && accuracy >= 80,
+    },
+    {
+      id: 'score-100',
+      name: 'Quiz Champion',
+      desc: 'Earn 100+ points',
+      icon: '🏆',
+      unlocked: totalScore >= 100,
+    },
+  ];
+
+  const unlockedCount = achievements.filter((a) => a.unlocked).length;
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-800">Your Progress Dashboard</h1>
-        <p className="text-gray-600 mt-2">Track your learning journey and accuracy.</p>
+    <div className="space-y-8">
+      {/* Hero Welcome Banner */}
+      <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+        <div className="absolute right-0 bottom-0 translate-x-10 translate-y-10 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="relative z-10 max-w-2xl">
+          <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">
+            <Sparkles size={14} className="text-amber-300" />
+            <span>Interactive Gujarati & Hindi Learning</span>
+          </div>
+          <h1 className="text-2xl sm:text-4xl font-black mb-2">
+            Welcome back, {username || 'Learner'}!
+          </h1>
+          <p className="text-indigo-100 text-sm sm:text-base mb-6 leading-relaxed">
+            Continue mastering numbers 1-100, calendar months, and test your skills with quizzes and voice pronunciation.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              to="/practice"
+              className="inline-flex items-center gap-2 bg-white text-indigo-700 hover:bg-amber-300 hover:text-indigo-950 font-bold px-5 py-2.5 rounded-xl shadow-lg transition"
+            >
+              <Gamepad2 size={18} />
+              <span>Start Practice Quiz</span>
+              <ArrowRight size={16} />
+            </Link>
+            <Link
+              to="/flashcards"
+              className="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white font-semibold px-4 py-2.5 rounded-xl backdrop-blur-sm transition"
+            >
+              <Layers size={18} />
+              <span>Flip Flashcards</span>
+            </Link>
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <motion.div whileHover={{ scale: 1.02 }} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
-          <div className="bg-blue-100 p-3 rounded-lg text-blue-600"><BookCheck size={24} /></div>
+      {/* Main Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Numbers Learned */}
+        <motion.div
+          whileHover={{ y: -3 }}
+          className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col justify-between"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Numbers</span>
+            <div className="bg-blue-100 text-blue-600 p-2.5 rounded-xl">
+              <BookCheck size={20} />
+            </div>
+          </div>
           <div>
-            <p className="text-sm text-gray-500 font-medium">Numbers Learned</p>
-            <p className="text-2xl font-bold text-gray-800">{progress.numbersLearned.length}</p>
+            <div className="flex items-baseline gap-2 mb-2">
+              <span className="text-3xl font-black text-slate-800">{numCount}</span>
+              <span className="text-xs font-medium text-slate-400">/ 100 learned</span>
+            </div>
+            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+              <div
+                className="bg-blue-500 h-full rounded-full transition-all duration-500"
+                style={{ width: `${Math.min(100, (numCount / 100) * 100)}%` }}
+              />
+            </div>
           </div>
         </motion.div>
 
-        <motion.div whileHover={{ scale: 1.02 }} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
-          <div className="bg-purple-100 p-3 rounded-lg text-purple-600"><CalendarDays size={24} /></div>
+        {/* Months Learned */}
+        <motion.div
+          whileHover={{ y: -3 }}
+          className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col justify-between"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Months</span>
+            <div className="bg-purple-100 text-purple-600 p-2.5 rounded-xl">
+              <CalendarDays size={20} />
+            </div>
+          </div>
           <div>
-            <p className="text-sm text-gray-500 font-medium">Months Learned</p>
-            <p className="text-2xl font-bold text-gray-800">{progress.monthsLearned.length}</p>
+            <div className="flex items-baseline gap-2 mb-2">
+              <span className="text-3xl font-black text-slate-800">{monthCount}</span>
+              <span className="text-xs font-medium text-slate-400">/ 24 learned</span>
+            </div>
+            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+              <div
+                className="bg-purple-500 h-full rounded-full transition-all duration-500"
+                style={{ width: `${Math.min(100, (monthCount / 24) * 100)}%` }}
+              />
+            </div>
           </div>
         </motion.div>
 
-        <motion.div whileHover={{ scale: 1.02 }} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
-          <div className="bg-green-100 p-3 rounded-lg text-green-600"><Target size={24} /></div>
+        {/* Accuracy */}
+        <motion.div
+          whileHover={{ y: -3 }}
+          className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col justify-between"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Accuracy</span>
+            <div className="bg-emerald-100 text-emerald-600 p-2.5 rounded-xl">
+              <Target size={20} />
+            </div>
+          </div>
           <div>
-            <p className="text-sm text-gray-500 font-medium">Accuracy</p>
-            <p className="text-2xl font-bold text-gray-800">{accuracy}%</p>
+            <div className="flex items-baseline gap-2 mb-2">
+              <span className="text-3xl font-black text-slate-800">{accuracy}%</span>
+              <span className="text-xs font-medium text-slate-400">
+                ({progress.correctAttempts}/{progress.totalAttempts} correct)
+              </span>
+            </div>
+            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+              <div
+                className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+                style={{ width: `${accuracy}%` }}
+              />
+            </div>
           </div>
         </motion.div>
 
-        <motion.div whileHover={{ scale: 1.02 }} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
-          <div className="bg-amber-100 p-3 rounded-lg text-amber-600"><Trophy size={24} /></div>
+        {/* Total Score & Streak */}
+        <motion.div
+          whileHover={{ y: -3 }}
+          className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col justify-between"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Total Score</span>
+            <div className="bg-amber-100 text-amber-600 p-2.5 rounded-xl">
+              <Trophy size={20} />
+            </div>
+          </div>
           <div>
-            <p className="text-sm text-gray-500 font-medium">Total Score</p>
-            <p className="text-2xl font-bold text-gray-800">
-              {progress.scores.easy + progress.scores.medium + progress.scores.hard}
+            <div className="flex items-baseline justify-between mb-2">
+              <span className="text-3xl font-black text-slate-800">{totalScore}</span>
+              <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                <Flame size={12} className="fill-amber-500 text-amber-500" />
+                Streak: {progress.streak}
+              </span>
+            </div>
+            <p className="text-xs text-slate-400">Best Streak: {progress.bestStreak || 0}</p>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Quick Lookup & Practice Hub */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Quick Number Search Tool */}
+        <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                <Search size={18} className="text-indigo-600" />
+                <span>Instant Number Lookup</span>
+              </h2>
+              <p className="text-xs text-slate-500">
+                Type any number (1-100) or word to hear pronunciation and see Gujarati & Hindi scripts.
+              </p>
+            </div>
+          </div>
+
+          <div className="relative mb-4">
+            <input
+              type="text"
+              value={quickSearch}
+              onChange={(e) => setQuickSearch(e.target.value)}
+              placeholder="e.g. 15, pandar, પંદર, पंद्रह, 25..."
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition"
+            />
+          </div>
+
+          {filteredNumbers.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {filteredNumbers.map((num) => (
+                <div
+                  key={num.english}
+                  className="p-3.5 bg-slate-50 border border-slate-200/70 rounded-xl flex items-center justify-between hover:bg-indigo-50/50 hover:border-indigo-200 transition"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-sm font-mono">
+                      {num.english}
+                    </span>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-indigo-900">{num.gujaratiName}</span>
+                        <span className="text-xs bg-indigo-100/70 text-indigo-700 px-1.5 py-0.5 rounded font-mono">
+                          {num.gujarati}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-slate-500">
+                        <span>Hindi: {num.hindiName}</span>
+                        <span className="font-mono">({num.hindi})</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => handleSpeak(num, 'gu')}
+                      className={`p-1.5 rounded-lg border text-xs flex items-center gap-1 transition ${
+                        activeVoiceNumber === num.english
+                          ? 'bg-indigo-600 text-white'
+                          : 'bg-white text-indigo-600 border-slate-200 hover:bg-indigo-50'
+                      }`}
+                      title="Listen in Gujarati"
+                    >
+                      <Volume2 size={13} /> Guj
+                    </button>
+                    <button
+                      onClick={() => handleSpeak(num, 'hi')}
+                      className="p-1.5 rounded-lg border border-slate-200 bg-white text-purple-600 hover:bg-purple-50 text-xs flex items-center gap-1 transition"
+                      title="Listen in Hindi"
+                    >
+                      <Volume2 size={13} /> Hin
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : quickSearch.trim() ? (
+            <p className="text-xs text-slate-400 text-center py-4">No matching numbers found for "{quickSearch}".</p>
+          ) : (
+            <div className="text-xs text-slate-400 bg-slate-50 p-4 rounded-xl border border-dashed border-slate-200 flex items-center justify-center gap-2">
+              <span>Try typing a number like <strong>5</strong>, <strong>21</strong>, <strong>50</strong>, or <strong>100</strong> above!</span>
+            </div>
+          )}
+        </div>
+
+        {/* Level Points Breakdown */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 flex flex-col justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-slate-800 mb-1 flex items-center gap-2">
+              <Award size={18} className="text-amber-500" />
+              <span>Score Breakdown</span>
+            </h2>
+            <p className="text-xs text-slate-500 mb-4">Points earned across difficulty tiers</p>
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 bg-emerald-50/70 border border-emerald-100 rounded-xl">
+                <div>
+                  <p className="font-semibold text-emerald-900 text-sm">Easy (Multiple Choice)</p>
+                  <p className="text-xs text-emerald-600">+10 pts per correct answer</p>
+                </div>
+                <span className="text-lg font-bold text-emerald-700">{progress.scores.easy}</span>
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-blue-50/70 border border-blue-100 rounded-xl">
+                <div>
+                  <p className="font-semibold text-blue-900 text-sm">Medium (Typing)</p>
+                  <p className="text-xs text-blue-600">+20 pts per correct answer</p>
+                </div>
+                <span className="text-lg font-bold text-blue-700">{progress.scores.medium}</span>
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-purple-50/70 border border-purple-100 rounded-xl">
+                <div>
+                  <p className="font-semibold text-purple-900 text-sm">Hard (Voice Speech)</p>
+                  <p className="text-xs text-purple-600">+30 pts per correct answer</p>
+                </div>
+                <span className="text-lg font-bold text-purple-700">{progress.scores.hard}</span>
+              </div>
+            </div>
+          </div>
+
+          <Link
+            to="/practice"
+            className="mt-4 w-full bg-slate-900 hover:bg-indigo-600 text-white font-bold py-2.5 rounded-xl text-center text-sm transition block shadow-sm"
+          >
+            Launch Practice
+          </Link>
+        </div>
+      </div>
+
+      {/* Achievements Showcase */}
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+              <Trophy size={18} className="text-amber-500" />
+              <span>Achievements & Milestones</span>
+            </h2>
+            <p className="text-xs text-slate-500">
+              Unlocked {unlockedCount} of {achievements.length} badges
             </p>
           </div>
-        </motion.div>
-      </div>
+          <span className="text-xs font-bold bg-amber-100 text-amber-800 px-3 py-1 rounded-full">
+            {Math.round((unlockedCount / achievements.length) * 100)}% Complete
+          </span>
+        </div>
 
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mt-8">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Link to="/learn-numbers" className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 p-4 rounded-lg text-center font-medium transition">
-            Learn Numbers
-          </Link>
-          <Link to="/learn-months" className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 p-4 rounded-lg text-center font-medium transition">
-            Learn Months
-          </Link>
-          <Link to="/practice" className="bg-indigo-600 hover:bg-indigo-700 text-white p-4 rounded-lg text-center font-medium transition">
-            Start Practice
-          </Link>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {achievements.map((ach) => (
+            <div
+              key={ach.id}
+              className={`p-3.5 rounded-xl border text-center transition ${
+                ach.unlocked
+                  ? 'bg-amber-50/60 border-amber-200 text-slate-800'
+                  : 'bg-slate-50/80 border-slate-200/60 opacity-50 grayscale'
+              }`}
+            >
+              <div className="text-2xl mb-1">{ach.icon}</div>
+              <p className="font-bold text-xs text-slate-800">{ach.name}</p>
+              <p className="text-[10px] text-slate-500 leading-tight mt-0.5">{ach.desc}</p>
+              <div className="mt-2">
+                <span
+                  className={`text-[9px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded-full ${
+                    ach.unlocked ? 'bg-amber-200 text-amber-900' : 'bg-slate-200 text-slate-600'
+                  }`}
+                >
+                  {ach.unlocked ? 'Unlocked' : 'Locked'}
+                </span>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

@@ -1,65 +1,193 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { CheckCircle2, Keyboard, Mic } from 'lucide-react';
+import {
+  CheckCircle2,
+  Keyboard,
+  Mic,
+  Headphones,
+  Calendar,
+  BookOpen,
+  ArrowRight,
+  Flame,
+  Trophy
+} from 'lucide-react';
+import { useStore } from '../store/useStore';
+import { playSound } from '../utils/sound';
 
 const PracticeMenu = () => {
+  const { progress } = useStore();
   const [lang, setLang] = useState<'gu' | 'hi'>('gu');
+  const [category, setCategory] = useState<'numbers' | 'months'>('numbers');
+
+  const modes = [
+    {
+      level: 'easy',
+      name: 'Easy: Multiple Choice',
+      desc: '4 options to choose from. Best for rapid recognition and visual association.',
+      icon: CheckCircle2,
+      color: 'emerald',
+      badge: '+10 pts',
+      bgGrad: 'from-emerald-500 to-teal-600',
+    },
+    {
+      level: 'medium',
+      name: 'Intermediate: Typing Test',
+      desc: `Type the name in English transliteration or ${lang === 'gu' ? 'Gujarati' : 'Hindi'} script.`,
+      icon: Keyboard,
+      color: 'blue',
+      badge: '+20 pts',
+      bgGrad: 'from-blue-500 to-indigo-600',
+    },
+    {
+      level: 'hard',
+      name: 'Hard: Voice Speaking',
+      desc: 'Speak the number or month aloud using your microphone for pronunciation evaluation.',
+      icon: Mic,
+      color: 'purple',
+      badge: '+30 pts',
+      bgGrad: 'from-purple-500 to-violet-600',
+    },
+    {
+      level: 'listening',
+      name: 'Listening Challenge',
+      desc: 'Hear the native speech audio and pick the corresponding answer.',
+      icon: Headphones,
+      color: 'amber',
+      badge: '+15 pts',
+      bgGrad: 'from-amber-500 to-orange-600',
+    },
+  ];
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-800">Practice Time</h1>
-        <p className="text-gray-600 mt-2">Choose a language and level to test your knowledge!</p>
+      {/* Header */}
+      <div className="text-center space-y-2">
+        <h1 className="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight">
+          Interactive Practice Arena
+        </h1>
+        <p className="text-slate-500 text-sm sm:text-base max-w-xl mx-auto">
+          Test your memory, typing speed, and pronunciation with gamified quizzes tailored to your skill level.
+        </p>
+
+        {/* User live stat pills */}
+        <div className="inline-flex items-center gap-4 bg-white border border-slate-200 px-4 py-2 rounded-2xl shadow-sm text-xs font-bold mt-2">
+          <span className="flex items-center gap-1.5 text-amber-600">
+            <Trophy size={15} /> Total Score: {progress.scores.easy + progress.scores.medium + progress.scores.hard}
+          </span>
+          <span className="text-slate-300">|</span>
+          <span className="flex items-center gap-1.5 text-orange-600">
+            <Flame size={15} className="fill-orange-500" /> Current Streak: {progress.streak}
+          </span>
+        </div>
       </div>
 
-      <div className="flex justify-center mb-8">
-        <div className="flex bg-gray-200 p-1 rounded-lg">
-          <button 
-            className={`px-6 py-2 rounded-md font-bold transition ${lang === 'gu' ? 'bg-white shadow text-indigo-600' : 'text-gray-600 hover:text-gray-900'}`}
-            onClick={() => setLang('gu')}
+      {/* Selectors: Category & Language */}
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+        {/* Category Picker */}
+        <div className="flex bg-slate-200/80 p-1.5 rounded-2xl shadow-inner w-full sm:w-auto">
+          <button
+            onClick={() => {
+              playSound('click');
+              setCategory('numbers');
+            }}
+            className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-xl font-bold text-sm transition ${
+              category === 'numbers'
+                ? 'bg-white text-indigo-700 shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
           >
-            Gujarati
+            <BookOpen size={16} />
+            <span>Numbers (1-100)</span>
           </button>
-          <button 
-            className={`px-6 py-2 rounded-md font-bold transition ${lang === 'hi' ? 'bg-white shadow text-indigo-600' : 'text-gray-600 hover:text-gray-900'}`}
-            onClick={() => setLang('hi')}
+          <button
+            onClick={() => {
+              playSound('click');
+              setCategory('months');
+            }}
+            className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-xl font-bold text-sm transition ${
+              category === 'months'
+                ? 'bg-white text-indigo-700 shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
           >
-            Hindi
+            <Calendar size={16} />
+            <span>Traditional Months</span>
+          </button>
+        </div>
+
+        {/* Language Picker */}
+        <div className="flex bg-slate-200/80 p-1.5 rounded-2xl shadow-inner w-full sm:w-auto">
+          <button
+            onClick={() => {
+              playSound('click');
+              setLang('gu');
+            }}
+            className={`flex-1 sm:flex-none px-5 py-2 rounded-xl font-bold text-sm transition ${
+              lang === 'gu'
+                ? 'bg-white text-indigo-700 shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            ગુજરાતી (Gujarati)
+          </button>
+          <button
+            onClick={() => {
+              playSound('click');
+              setLang('hi');
+            }}
+            className={`flex-1 sm:flex-none px-5 py-2 rounded-xl font-bold text-sm transition ${
+              lang === 'hi'
+                ? 'bg-white text-indigo-700 shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            हिन्दी (Hindi)
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Link to={`/practice/${lang}/easy`}>
-          <motion.div whileHover={{ scale: 1.03 }} className="bg-white p-8 rounded-2xl shadow-sm border-2 border-transparent hover:border-green-400 h-full flex flex-col items-center text-center transition">
-            <div className="bg-green-100 p-4 rounded-full text-green-600 mb-4">
-              <CheckCircle2 size={32} />
-            </div>
-            <h2 className="text-xl font-bold text-gray-800 mb-2">Easy</h2>
-            <p className="text-gray-500 text-sm">Multiple choice questions. Find the matching number.</p>
-          </motion.div>
-        </Link>
+      {/* Modes Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        {modes.map((mode) => {
+          const Icon = mode.icon;
+          return (
+            <Link
+              key={mode.level}
+              to={`/practice/${category}/${lang}/${mode.level}`}
+              onClick={() => playSound('click')}
+              className="group block"
+            >
+              <motion.div
+                whileHover={{ y: -4, scale: 1.01 }}
+                className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200/90 group-hover:border-indigo-300 group-hover:shadow-md transition flex flex-col justify-between h-full"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className={`p-3 rounded-2xl bg-gradient-to-br ${mode.bgGrad} text-white shadow-md`}>
+                      <Icon size={24} />
+                    </div>
+                    <span className="text-xs font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                      {mode.badge}
+                    </span>
+                  </div>
 
-        <Link to={`/practice/${lang}/medium`}>
-          <motion.div whileHover={{ scale: 1.03 }} className="bg-white p-8 rounded-2xl shadow-sm border-2 border-transparent hover:border-blue-400 h-full flex flex-col items-center text-center transition">
-            <div className="bg-blue-100 p-4 rounded-full text-blue-600 mb-4">
-              <Keyboard size={32} />
-            </div>
-            <h2 className="text-xl font-bold text-gray-800 mb-2">Intermediate</h2>
-            <p className="text-gray-500 text-sm">Type the number name in {lang === 'gu' ? 'Gujarati' : 'Hindi'}.</p>
-          </motion.div>
-        </Link>
+                  <h3 className="text-lg font-black text-slate-800 group-hover:text-indigo-600 transition mb-1">
+                    {mode.name}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
+                    {mode.desc}
+                  </p>
+                </div>
 
-        <Link to={`/practice/${lang}/hard`}>
-          <motion.div whileHover={{ scale: 1.03 }} className="bg-white p-8 rounded-2xl shadow-sm border-2 border-transparent hover:border-red-400 h-full flex flex-col items-center text-center transition">
-            <div className="bg-red-100 p-4 rounded-full text-red-600 mb-4">
-              <Mic size={32} />
-            </div>
-            <h2 className="text-xl font-bold text-gray-800 mb-2">Hard</h2>
-            <p className="text-gray-500 text-sm">Speak the correct answer using your microphone.</p>
-          </motion.div>
-        </Link>
+                <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-indigo-600">
+                  <span>Start 10-Question Quiz</span>
+                  <ArrowRight size={16} className="group-hover:translate-x-1 transition" />
+                </div>
+              </motion.div>
+            </Link>
+          );
+        })}
       </div>
     </div>
   );
