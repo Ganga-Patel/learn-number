@@ -11,14 +11,14 @@ import PracticeSession from './pages/PracticeSession';
 import NumberLookup from './pages/NumberLookup';
 
 function App() {
-  const { username } = useStore();
+  const { currentUser } = useStore();
 
   return (
     <Router>
       <Routes>
-        <Route path="/login" element={!username ? <Login /> : <Navigate to="/" replace />} />
+        <Route path="/login" element={!currentUser ? <Login /> : <Navigate to="/" replace />} />
 
-        <Route element={username ? <Layout /> : <Navigate to="/login" replace />}>
+        <Route element={currentUser ? <Layout /> : <Navigate to="/login" replace />}>
           <Route path="/" element={<Dashboard />} />
           <Route path="/learn-numbers" element={<LearnNumbers />} />
           <Route path="/learn-months" element={<LearnMonths />} />
