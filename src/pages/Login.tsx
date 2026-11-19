@@ -129,7 +129,7 @@ const Login = () => {
         <div className="text-center mb-6">
           <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full mb-1.5">
             <Sparkles size={13} className="text-amber-500" />
-            <span>Gujarati & Hindi Learning</span>
+            <span>Pan-Indian Languages Portal</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">
             {mode === 'signin' ? 'Sign In to Account' : 'Create New Account'}

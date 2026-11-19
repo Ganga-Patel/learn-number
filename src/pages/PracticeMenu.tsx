@@ -14,11 +14,14 @@ import {
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { playSound } from '../utils/sound';
+import { LanguageSelector } from '../components/LanguageSelector';
+import { getLanguageMeta, type LanguageCode } from '../data/languages';
 
 const PracticeMenu = () => {
-  const { progress } = useStore();
-  const [lang, setLang] = useState<'gu' | 'hi'>('gu');
+  const { progress, selectedLanguage, setSelectedLanguage } = useStore();
   const [category, setCategory] = useState<'numbers' | 'months'>('numbers');
+
+  const langMeta = getLanguageMeta(selectedLanguage);
 
   const modes = [
     {
@@ -33,7 +36,7 @@ const PracticeMenu = () => {
     {
       level: 'medium',
       name: 'Intermediate: Typing Test',
-      desc: `Type the name in English transliteration or ${lang === 'gu' ? 'Gujarati' : 'Hindi'} script.`,
+      desc: `Type the name in English transliteration or ${langMeta.name} (${langMeta.nativeName}) script.`,
       icon: Keyboard,
       color: 'blue',
       badge: '+20 pts',
@@ -42,7 +45,7 @@ const PracticeMenu = () => {
     {
       level: 'hard',
       name: 'Hard: Voice Speaking',
-      desc: 'Speak the number or month aloud using your microphone for pronunciation evaluation.',
+      desc: `Speak the number or month aloud in ${langMeta.name} using your microphone for pronunciation evaluation.`,
       icon: Mic,
       color: 'purple',
       badge: '+30 pts',
@@ -51,7 +54,7 @@ const PracticeMenu = () => {
     {
       level: 'listening',
       name: 'Listening Challenge',
-      desc: 'Hear the native speech audio and pick the corresponding answer.',
+      desc: `Hear the native ${langMeta.name} speech audio and pick the corresponding answer.`,
       icon: Headphones,
       color: 'amber',
       badge: '+15 pts',
@@ -67,7 +70,7 @@ const PracticeMenu = () => {
           Interactive Practice Arena
         </h1>
         <p className="text-slate-500 text-sm sm:text-base max-w-xl mx-auto">
-          Test your memory, typing speed, and pronunciation with gamified quizzes tailored to your skill level.
+          Test your recognition, spelling, and pronunciation across India's classical and regional languages.
         </p>
 
         {/* User live stat pills */}
@@ -83,67 +86,54 @@ const PracticeMenu = () => {
       </div>
 
       {/* Selectors: Category & Language */}
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-        {/* Category Picker */}
-        <div className="flex bg-slate-200/80 p-1.5 rounded-2xl shadow-inner w-full sm:w-auto">
-          <button
-            onClick={() => {
-              playSound('click');
-              setCategory('numbers');
-            }}
-            className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-xl font-bold text-sm transition ${
-              category === 'numbers'
-                ? 'bg-white text-indigo-700 shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <BookOpen size={16} />
-            <span>Numbers (1-100)</span>
-          </button>
-          <button
-            onClick={() => {
-              playSound('click');
-              setCategory('months');
-            }}
-            className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-xl font-bold text-sm transition ${
-              category === 'months'
-                ? 'bg-white text-indigo-700 shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <Calendar size={16} />
-            <span>Traditional Months</span>
-          </button>
+      <div className="space-y-3">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          {/* Category Picker */}
+          <div className="flex bg-slate-200/80 p-1.5 rounded-2xl shadow-inner w-full sm:w-auto">
+            <button
+              onClick={() => {
+                playSound('click');
+                setCategory('numbers');
+              }}
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-xl font-bold text-sm transition ${
+                category === 'numbers'
+                  ? 'bg-white text-indigo-700 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <BookOpen size={16} />
+              <span>Numbers (1-100)</span>
+            </button>
+            <button
+              onClick={() => {
+                playSound('click');
+                setCategory('months');
+              }}
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-xl font-bold text-sm transition ${
+                category === 'months'
+                  ? 'bg-white text-indigo-700 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Calendar size={16} />
+              <span>Traditional Months</span>
+            </button>
+          </div>
+
+          {/* Language Selector Dropdown */}
+          <LanguageSelector
+            currentLang={selectedLanguage}
+            onSelect={(code: LanguageCode) => setSelectedLanguage(code)}
+          />
         </div>
 
-        {/* Language Picker */}
-        <div className="flex bg-slate-200/80 p-1.5 rounded-2xl shadow-inner w-full sm:w-auto">
-          <button
-            onClick={() => {
-              playSound('click');
-              setLang('gu');
-            }}
-            className={`flex-1 sm:flex-none px-5 py-2 rounded-xl font-bold text-sm transition ${
-              lang === 'gu'
-                ? 'bg-white text-indigo-700 shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            ગુજરાતી (Gujarati)
-          </button>
-          <button
-            onClick={() => {
-              playSound('click');
-              setLang('hi');
-            }}
-            className={`flex-1 sm:flex-none px-5 py-2 rounded-xl font-bold text-sm transition ${
-              lang === 'hi'
-                ? 'bg-white text-indigo-700 shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            हिन्दी (Hindi)
-          </button>
+        {/* Language Pills for 1-click selection */}
+        <div className="flex justify-center">
+          <LanguageSelector
+            currentLang={selectedLanguage}
+            onSelect={(code: LanguageCode) => setSelectedLanguage(code)}
+            variant="pills"
+          />
         </div>
       </div>
 
@@ -154,7 +144,7 @@ const PracticeMenu = () => {
           return (
             <Link
               key={mode.level}
-              to={`/practice/${category}/${lang}/${mode.level}`}
+              to={`/practice/${category}/${selectedLanguage}/${mode.level}`}
               onClick={() => playSound('click')}
               className="group block"
             >
@@ -181,7 +171,7 @@ const PracticeMenu = () => {
                 </div>
 
                 <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-indigo-600">
-                  <span>Start 10-Question Quiz</span>
+                  <span>Start 10-Question {langMeta.name} Quiz</span>
                   <ArrowRight size={16} className="group-hover:translate-x-1 transition" />
                 </div>
               </motion.div>

@@ -1,6 +1,6 @@
-# LearnGujHindi: Gujarati & Hindi Numbers and Months Learning App
+# LearnIndic: 12 Major Indian Languages Learning App
 
-An interactive, engaging web application designed to help learners of all ages master **Numbers (1 to 100)** and **Traditional Lunar Months** in **Gujarati** and **Hindi**.
+An interactive, engaging web application designed to help learners of all ages master **Numbers (1 to 100)** and **Traditional Lunar & Solar Months** across **12 Major Indian Languages**.
 
 ![React](https://img.shields.io/badge/React-19-blue.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue.svg)
@@ -10,46 +10,71 @@ An interactive, engaging web application designed to help learners of all ages m
 
 ---
 
+## 🇮🇳 Supported Indian Languages (12 Languages)
+
+| Language | Native Name | Script | Family | Speech Code |
+|---|---|---|---|---|
+| **Hindi** | हिन्दी | Devanagari | Indo-Aryan | `hi-IN` |
+| **Gujarati** | ગુજરાતી | Gujarati | Indo-Aryan | `gu-IN` |
+| **Marathi** | मराठी | Devanagari | Indo-Aryan | `mr-IN` |
+| **Bengali** | বাংলা | Bengali | Indo-Aryan | `bn-IN` |
+| **Tamil** | தமிழ் | Tamil | Dravidian | `ta-IN` |
+| **Telugu** | తెలుగు | Telugu | Dravidian | `te-IN` |
+| **Kannada** | ಕನ್ನಡ | Kannada | Dravidian | `kn-IN` |
+| **Malayalam** | മലയാളം | Malayalam | Dravidian | `ml-IN` |
+| **Punjabi** | ਪੰਜਾਬੀ | Gurmukhi | Indo-Aryan | `pa-IN` |
+| **Odia** | ଓଡ଼ିଆ | Odia | Indo-Aryan | `or-IN` |
+| **Sanskrit** | संस्कृतम् | Devanagari | Indo-Aryan | `hi-IN` |
+| **Urdu** | اردو | Perso-Arabic | Indo-Aryan | `ur-IN` |
+
+---
+
 ## 🌟 Key Features
 
-### 🔢 Numbers (1 - 100)
-- Full 1 to 100 number database for both Gujarati (`૧` - `૧૦૦`) and Hindi (`१` - `१००`).
-- **Roman Transliterations**: Learn how to pronounce each number (e.g. *Ek*, *Tran*, *Chhoter*, *Ninyaanve*).
-- **Audio Pronunciation**: High-clarity native speech with configurable speed (Normal `0.9x` / Slow `0.75x`).
-- **Smart Filtering**: Filter by range (`1-20`, `21-40`, etc.), learning status (`Learned` / `To Learn`), or instant search.
-- **Batch Controls**: Mark or clear visible numbers as learned with one click.
+### 🔢 Numbers (1 - 100) Across All 12 Languages
+- Complete database for all 100 numbers in 12 Indian languages with authentic native numerals (e.g. `૧`, `१`, `১`, `௧`, `౧`, `೧`, `൧`, `੧`, `୧`, `۱`).
+- **Roman Transliterations**: Clear phonetic pronunciation guides for every language.
+- **Audio Pronunciation**: High-clarity native speech with configurable speed (`0.9x` normal / `0.75x` slow).
+- **Smart Filtering**: Range chips (`1-20`, `21-40`, etc.), learning status (`Learned` / `To Learn`), and instant multi-lingual search.
+- **Batch Controls**: Mark or clear visible numbers as learned in one click.
 
-### 🗓️ Traditional Months
-- **Gujarati Months (Vikram Samvat)**: 12 months starting with *Kartik* (post-Diwali).
-- **Hindi Months (Saka / National)**: 12 months starting with *Chaitra* (Spring).
-- Detailed metadata including approximate Gregorian calendar months, traditional seasons, and celebrated festivals.
+### 🗓️ Traditional Months (8 Regional Calendar Traditions)
+- **Gujarati (Vikram Samvat)**: 12 months starting with *Kartik*.
+- **Hindi / National (Chaitradi)**: 12 months starting with *Chaitra*.
+- **Marathi (Shalivahana Shaka)**: 12 months starting with *Chaitra*.
+- **Tamil (Souramana Solar)**: 12 months starting with *Chithirai*.
+- **Bengali (Bangla Sal)**: 12 months starting with *Boishakh*.
+- **Telugu (Chandramana)**: 12 months starting with *Chaitramu*.
+- **Kannada (Chandramana)**: 12 months starting with *Chaitra*.
+- **Malayalam (Kollam Era)**: 12 months starting with *Chingam*.
+- Complete seasonal and festival metadata for each calendar.
 
-### 🃏 3D Flashcards
-- Flip cards with smooth 3D animations for memory practice.
+### 🃏 3D Interactive Flashcards
+- Flip cards with 3D animations for memory practice in any Indian language.
 - Full keyboard support:
   - `Space` / `Enter`: Flip card
   - `←` / `→`: Navigate previous / next card
   - `↑` / `V`: Listen to audio pronunciation
 - Deck shuffling and "Mark as Mastered" tracking.
 
-### 🔍 Number Finder & Explorer
+### 🔍 Pan-Indian Number Finder & Explorer
 - Instant number converter with interactive slider (1-100) and text search.
-- Dual-column comparison between Gujarati and Hindi.
-- Visual base-10 counting beads representation.
+- **12-Language Comparison Matrix**: Compare any number across all 12 languages simultaneously with instant pronunciation audio buttons!
+- Base-10 visual counting beads representation.
 
 ### 🎯 Gamified Practice Arena
-- **Four Game Modes**:
+- **Four Game Modes for Any Language**:
   1. **Easy (Multiple Choice)**: 4 options to test visual recognition (+10 pts).
   2. **Intermediate (Typing)**: Type native script or Roman transliteration with fuzzy phonetic validation (+20 pts).
   3. **Hard (Voice Speaking)**: Speak the answer aloud using browser SpeechRecognition (+30 pts).
   4. **Listening Challenge**: Listen to native speech and pick the matching answer (+15 pts).
-- **10-Question Rounds**: Streak multiplier bonuses, Web Audio sound effects (chimes & buzzers), and comprehensive round-end review list.
+- **10-Question Structured Rounds**: Streak multipliers (+2 pts per streak 🔥), Web Audio sound effects (chimes & buzzers), and comprehensive round-end review list.
 
-### 📊 Dashboard & Achievements
-- Track total numbers and months mastered with live progress bars.
-- Accuracy percentage and current/best streak tracking.
-- **8 Unlockable Achievement Badges** to keep learners motivated.
-- Persistent state via browser `localStorage`.
+### 🔐 Password-Protected Authentication
+- Strict password validation.
+- User registration with name, username, and password.
+- Pre-configured demo accounts (`student` / `password123`, `admin` / `admin123`).
+- Per-user progress isolation.
 
 ---
 

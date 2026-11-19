@@ -16,9 +16,20 @@ import {
   Search
 } from 'lucide-react';
 import { playSound } from '../utils/sound';
+import { LanguageSelector } from './LanguageSelector';
 
 const Layout = () => {
-  const { username, logout, progress, audioSpeed, setAudioSpeed, resetProgress } = useStore();
+  const {
+    username,
+    logout,
+    progress,
+    audioSpeed,
+    setAudioSpeed,
+    resetProgress,
+    selectedLanguage,
+    setSelectedLanguage
+  } = useStore();
+
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
@@ -53,7 +64,7 @@ const Layout = () => {
     <div className="min-h-screen bg-slate-50 flex flex-col text-slate-800 antialiased">
       {/* Top Header */}
       <header className="bg-gradient-to-r from-indigo-700 via-indigo-600 to-purple-600 text-white shadow-md sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+        <div className="container mx-auto px-4 py-2.5 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -62,27 +73,33 @@ const Layout = () => {
             >
               {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
-            <Link to="/" className="text-xl font-black tracking-tight flex items-center gap-2 group">
+            <Link to="/" className="text-lg sm:text-xl font-black tracking-tight flex items-center gap-2 group">
               <span className="p-2 bg-white/20 rounded-xl group-hover:scale-105 transition">
                 <BookOpen size={20} className="text-amber-300" />
               </span>
               <span>
-                Learn<span className="text-amber-300">GujHindi</span>
+                Learn<span className="text-amber-300">Indic</span>
               </span>
             </Link>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Active Language Selector Dropdown */}
+            <LanguageSelector
+              currentLang={selectedLanguage}
+              onSelect={(code) => setSelectedLanguage(code)}
+            />
+
             {/* Streak Badge */}
-            <div className="flex items-center gap-1.5 bg-amber-500/20 border border-amber-300/30 px-2.5 py-1 rounded-full text-amber-200 text-xs sm:text-sm font-bold">
-              <Flame size={16} className="text-amber-400 fill-amber-400 animate-pulse" />
+            <div className="hidden sm:flex items-center gap-1.5 bg-amber-500/20 border border-amber-300/30 px-2.5 py-1 rounded-full text-amber-200 text-xs font-bold">
+              <Flame size={15} className="text-amber-400 fill-amber-400 animate-pulse" />
               <span>{progress.streak || 0} Streak</span>
             </div>
 
             {/* Audio Speed Toggle */}
             <button
               onClick={toggleSpeed}
-              className="flex items-center gap-1 bg-white/10 hover:bg-white/20 px-2.5 py-1 rounded-lg text-xs font-medium transition"
+              className="hidden lg:flex items-center gap-1 bg-white/10 hover:bg-white/20 px-2.5 py-1 rounded-lg text-xs font-medium transition"
               title="Toggle audio pronunciation speed"
             >
               <Volume2 size={14} />
@@ -90,8 +107,8 @@ const Layout = () => {
             </button>
 
             {/* User Greeting & Logout */}
-            <div className="flex items-center gap-2">
-              <span className="hidden sm:inline font-medium text-sm text-indigo-100">
+            <div className="flex items-center gap-1.5">
+              <span className="hidden md:inline font-medium text-xs text-indigo-100">
                 Hi, <strong className="text-white">{username}</strong>
               </span>
               <button
@@ -99,7 +116,7 @@ const Layout = () => {
                 className="p-1.5 text-indigo-200 hover:text-white hover:bg-indigo-800/50 rounded-lg transition"
                 title="Reset learning stats"
               >
-                <RotateCcw size={16} />
+                <RotateCcw size={15} />
               </button>
               <button
                 onClick={handleLogout}
@@ -114,7 +131,7 @@ const Layout = () => {
       </header>
 
       {/* Desktop Navigation */}
-      <nav className="bg-white border-b border-slate-200 shadow-sm sticky top-[57px] z-40 hidden md:block">
+      <nav className="bg-white border-b border-slate-200 shadow-sm sticky top-[53px] z-40 hidden md:block">
         <div className="container mx-auto px-4 flex gap-1 overflow-x-auto">
           {navLinks.map((link) => {
             const Icon = link.icon;
@@ -174,9 +191,9 @@ const Layout = () => {
       {/* Footer */}
       <footer className="bg-white border-t border-slate-200 py-6 mt-12 text-center text-slate-500 text-xs">
         <div className="container mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
-          <p>© {new Date().getFullYear()} Learn Gujarati & Hindi. An interactive language learning platform.</p>
+          <p>© {new Date().getFullYear()} LearnIndic: 12 Major Indian Languages Learning Portal.</p>
           <div className="flex gap-4">
-            <span className="text-slate-400">100 Numbers • 24 Traditional Months</span>
+            <span className="text-slate-400">Hindi • Gujarati • Marathi • Bengali • Tamil • Telugu • Kannada • Malayalam • Punjabi • Odia • Sanskrit • Urdu</span>
           </div>
         </div>
       </footer>
@@ -187,7 +204,7 @@ const Layout = () => {
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-slate-100">
             <h3 className="text-lg font-bold text-slate-800 mb-2">Reset Learning Progress?</h3>
             <p className="text-sm text-slate-500 mb-6">
-              This will clear all your learned numbers, months, practice scores, and streaks. This cannot be undone.
+              This will clear all your learned numbers, months, practice scores, and streaks for your account. This cannot be undone.
             </p>
             <div className="flex justify-end gap-3">
               <button

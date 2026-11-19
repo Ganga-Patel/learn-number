@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { hashPassword } from '../utils/auth';
+import type { LanguageCode } from '../data/languages';
 
 export interface UserProgress {
   numbersLearned: number[];
@@ -27,10 +28,12 @@ export interface UserAccount {
 export interface AppState {
   currentUser: string | null;
   username: string | null;
+  selectedLanguage: LanguageCode;
   users: Record<string, UserAccount>;
   audioSpeed: number;
   progress: UserProgress;
 
+  setSelectedLanguage: (lang: LanguageCode) => void;
   login: (username: string, password: string) => { success: boolean; error?: string };
   register: (username: string, password: string, displayName?: string) => { success: boolean; error?: string };
   logout: () => void;
@@ -80,9 +83,12 @@ export const useStore = create<AppState>()(
     (set, get) => ({
       currentUser: null,
       username: null,
+      selectedLanguage: 'gu',
       users: defaultAccounts,
       audioSpeed: 0.9,
       progress: initialProgress,
+
+      setSelectedLanguage: (lang) => set({ selectedLanguage: lang }),
 
       login: (rawUsername: string, rawPassword: string) => {
         const username = rawUsername.trim().toLowerCase();

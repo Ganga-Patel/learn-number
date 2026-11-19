@@ -12,18 +12,21 @@ import {
   Sparkles
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { numbersData, type NumberItem } from '../data/numbers';
+import { numbersData, getNumberForLang, type NumberItem } from '../data/numbers';
 import { useStore } from '../store/useStore';
 import { speakText } from '../utils/speech';
 import { playSound } from '../utils/sound';
+import { LanguageSelector } from '../components/LanguageSelector';
+import { getLanguageMeta, type LanguageCode } from '../data/languages';
 
 const LearnNumbers = () => {
-  const { toggleNumberLearned, progress, audioSpeed } = useStore();
-  const [lang, setLang] = useState<'gu' | 'hi'>('gu');
+  const { toggleNumberLearned, progress, audioSpeed, selectedLanguage, setSelectedLanguage } = useStore();
   const [search, setSearch] = useState('');
   const [rangeFilter, setRangeFilter] = useState<'all' | '1-20' | '21-40' | '41-60' | '61-80' | '81-100'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'learned' | 'unlearned'>('all');
   const [activeSpeakingNum, setActiveSpeakingNum] = useState<number | null>(null);
+
+  const langMeta = getLanguageMeta(selectedLanguage);
 
   // Filter numbers
   const filteredNumbers = numbersData.filter((num) => {
@@ -42,10 +45,14 @@ const LearnNumbers = () => {
     // Search query
     if (search.trim()) {
       const q = search.trim().toLowerCase();
+      const currentDetail = getNumberForLang(num, selectedLanguage);
       const matchesEng = num.english.toString().includes(q);
-      const matchesGu = num.gujarati.includes(q) || num.gujaratiName.includes(q) || num.gujaratiTranslit.toLowerCase().includes(q);
-      const matchesHi = num.hindi.includes(q) || num.hindiName.includes(q) || num.hindiTranslit.toLowerCase().includes(q);
-      return matchesEng || matchesGu || matchesHi;
+      const matchesCurr =
+        currentDetail.digit.includes(q) ||
+        currentDetail.name.toLowerCase().includes(q) ||
+        currentDetail.translit.toLowerCase().includes(q);
+
+      return matchesEng || matchesCurr;
     }
 
     return true;
@@ -58,8 +65,8 @@ const LearnNumbers = () => {
     e?.stopPropagation();
     playSound('click');
     setActiveSpeakingNum(num.english);
-    const word = lang === 'gu' ? num.gujaratiName : num.hindiName;
-    await speakText(word, lang, audioSpeed);
+    const detail = getNumberForLang(num, selectedLanguage);
+    await speakText(detail.name, selectedLanguage, audioSpeed);
     setActiveSpeakingNum(null);
   };
 
@@ -93,17 +100,19 @@ const LearnNumbers = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">Learn Numbers 1 - 100</h1>
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">
+              Learn Numbers 1 - 100
+            </h1>
             <span className="text-xs bg-indigo-100 text-indigo-700 font-bold px-2.5 py-1 rounded-full">
               {numbersData.length} Total
             </span>
           </div>
           <p className="text-slate-500 text-sm mt-1">
-            Tap cards to toggle learned status or click listen to hear authentic pronunciation.
+            Explore 1-100 in <strong>{langMeta.name} ({langMeta.nativeName})</strong> with native numerals, words, and speech.
           </p>
         </div>
 
-        {/* Language Switcher & Flashcard Shortcut */}
+        {/* Language Selector & Flashcard Shortcut */}
         <div className="flex items-center gap-3">
           <Link
             to="/flashcards"
@@ -113,36 +122,20 @@ const LearnNumbers = () => {
             <span>Flashcards</span>
           </Link>
 
-          <div className="flex bg-slate-200/80 p-1 rounded-xl">
-            <button
-              className={`px-4 py-1.5 rounded-lg text-sm font-bold transition ${
-                lang === 'gu'
-                  ? 'bg-white shadow text-indigo-600'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-              onClick={() => {
-                playSound('click');
-                setLang('gu');
-              }}
-            >
-              ગુજરાતી (Gujarati)
-            </button>
-            <button
-              className={`px-4 py-1.5 rounded-lg text-sm font-bold transition ${
-                lang === 'hi'
-                  ? 'bg-white shadow text-indigo-600'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-              onClick={() => {
-                playSound('click');
-                setLang('hi');
-              }}
-            >
-              हिन्दी (Hindi)
-            </button>
-          </div>
+          <LanguageSelector
+            currentLang={selectedLanguage}
+            onSelect={(code: LanguageCode) => setSelectedLanguage(code)}
+          />
         </div>
       </div>
+
+      {/* Language Quick Pills Bar */}
+      <LanguageSelector
+        currentLang={selectedLanguage}
+        onSelect={(code: LanguageCode) => setSelectedLanguage(code)}
+        variant="pills"
+        className="pt-1"
+      />
 
       {/* Progress Bar Header */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -193,7 +186,7 @@ const LearnNumbers = () => {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by 1..100, script (એક, एक), or sound (ek, pandar)..."
+              placeholder={`Search by 1..100, script (${getNumberForLang(numbersData[0], selectedLanguage).name}), or phonetic...`}
               className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition"
             />
             {search && (
@@ -210,19 +203,25 @@ const LearnNumbers = () => {
           <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
             <button
               onClick={() => setStatusFilter('all')}
-              className={`px-3 py-1.5 rounded-lg transition ${statusFilter === 'all' ? 'bg-white shadow text-indigo-700 font-bold' : 'text-slate-600'}`}
+              className={`px-3 py-1.5 rounded-lg transition ${
+                statusFilter === 'all' ? 'bg-white shadow text-indigo-700 font-bold' : 'text-slate-600'
+              }`}
             >
               All ({numbersData.length})
             </button>
             <button
               onClick={() => setStatusFilter('learned')}
-              className={`px-3 py-1.5 rounded-lg transition ${statusFilter === 'learned' ? 'bg-white shadow text-emerald-700 font-bold' : 'text-slate-600'}`}
+              className={`px-3 py-1.5 rounded-lg transition ${
+                statusFilter === 'learned' ? 'bg-white shadow text-emerald-700 font-bold' : 'text-slate-600'
+              }`}
             >
               Learned ({learnedCount})
             </button>
             <button
               onClick={() => setStatusFilter('unlearned')}
-              className={`px-3 py-1.5 rounded-lg transition ${statusFilter === 'unlearned' ? 'bg-white shadow text-amber-700 font-bold' : 'text-slate-600'}`}
+              className={`px-3 py-1.5 rounded-lg transition ${
+                statusFilter === 'unlearned' ? 'bg-white shadow text-amber-700 font-bold' : 'text-slate-600'
+              }`}
             >
               To Learn ({100 - learnedCount})
             </button>
@@ -272,9 +271,7 @@ const LearnNumbers = () => {
             {filteredNumbers.map((num) => {
               const isLearned = progress.numbersLearned.includes(num.english);
               const isSpeaking = activeSpeakingNum === num.english;
-              const nativeNum = lang === 'gu' ? num.gujarati : num.hindi;
-              const nativeWord = lang === 'gu' ? num.gujaratiName : num.hindiName;
-              const translit = lang === 'gu' ? num.gujaratiTranslit : num.hindiTranslit;
+              const detail = getNumberForLang(num, selectedLanguage);
 
               return (
                 <motion.div
@@ -312,13 +309,13 @@ const LearnNumbers = () => {
                   {/* Center: Native Digit and Word */}
                   <div className="text-center my-2">
                     <div className="text-4xl font-black text-indigo-700 tracking-wide font-sans mb-1">
-                      {nativeNum}
+                      {detail.digit}
                     </div>
                     <div className="text-base font-bold text-slate-800 tracking-tight leading-snug">
-                      {nativeWord}
+                      {detail.name}
                     </div>
                     <div className="text-xs font-semibold text-slate-400 font-mono mt-0.5">
-                      {translit}
+                      {detail.translit}
                     </div>
                   </div>
 

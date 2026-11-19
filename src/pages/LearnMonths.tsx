@@ -6,20 +6,26 @@ import {
   Circle,
   Calendar,
   Sparkles,
-  Layers
+  Layers,
+  Globe
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { gujaratiMonths, hindiMonths, type MonthItem } from '../data/months';
+import { calendarTraditions, type MonthItem } from '../data/months';
 import { useStore } from '../store/useStore';
 import { speakText } from '../utils/speech';
 import { playSound } from '../utils/sound';
 
 const LearnMonths = () => {
-  const { toggleMonthLearned, progress, audioSpeed } = useStore();
-  const [activeTab, setActiveTab] = useState<'both' | 'gu' | 'hi'>('both');
+  const { toggleMonthLearned, progress, audioSpeed, selectedLanguage } = useStore();
+  const [selectedTradition, setSelectedTradition] = useState<string>(
+    calendarTraditions.some((t) => t.id === selectedLanguage) ? selectedLanguage : 'hi'
+  );
   const [activeSpeakingMonth, setActiveSpeakingMonth] = useState<string | null>(null);
 
-  const handleSpeak = async (month: MonthItem, lang: 'gu' | 'hi', e?: React.MouseEvent) => {
+  const activeTraditionData =
+    calendarTraditions.find((t) => t.id === selectedTradition) || calendarTraditions[0];
+
+  const handleSpeak = async (month: MonthItem, lang: string, e?: React.MouseEvent) => {
     e?.stopPropagation();
     playSound('click');
     setActiveSpeakingMonth(month.id);
@@ -33,11 +39,12 @@ const LearnMonths = () => {
     toggleMonthLearned(monthId);
   };
 
-  const gujLearnedCount = gujaratiMonths.filter((m) => progress.monthsLearned.includes(m.id)).length;
-  const hinLearnedCount = hindiMonths.filter((m) => progress.monthsLearned.includes(m.id)).length;
-  const totalLearned = gujLearnedCount + hinLearnedCount;
+  const totalLearned = progress.monthsLearned.length;
+  const traditionLearnedCount = activeTraditionData.months.filter((m) =>
+    progress.monthsLearned.includes(m.id)
+  ).length;
 
-  const renderMonthCard = (month: MonthItem, lang: 'gu' | 'hi') => {
+  const renderMonthCard = (month: MonthItem, lang: string) => {
     const isLearned = progress.monthsLearned.includes(month.id);
     const isSpeaking = activeSpeakingMonth === month.id;
 
@@ -113,65 +120,53 @@ const LearnMonths = () => {
 
   return (
     <div className="space-y-6">
-      {/* Title & Language View Tabs */}
+      {/* Title & Flashcard Link */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">Traditional Indian Months</h1>
             <span className="text-xs bg-purple-100 text-purple-700 font-bold px-2.5 py-1 rounded-full">
-              24 Total
+              {calendarTraditions.length} Calendar Traditions
             </span>
           </div>
           <p className="text-slate-500 text-sm mt-1">
-            Master the 12 Gujarati (Vikram Samvat) and 12 Hindi (National Saka) lunar calendar months.
+            Explore traditional lunar and solar calendars across India with seasons and festivals.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Link
-            to="/flashcards"
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50 shadow-sm transition"
-          >
-            <Layers size={15} />
-            <span>Flashcards</span>
-          </Link>
+        <Link
+          to="/flashcards"
+          className="self-start md:self-auto flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50 shadow-sm transition"
+        >
+          <Layers size={15} />
+          <span>Flashcards</span>
+        </Link>
+      </div>
 
-          <div className="flex bg-slate-200/80 p-1 rounded-xl text-xs sm:text-sm font-bold">
+      {/* Calendar Tradition Pills */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+        <span className="text-slate-400 font-bold flex items-center gap-1 mr-1">
+          <Globe size={14} className="text-indigo-600" /> Tradition:
+        </span>
+        {calendarTraditions.map((tradition) => {
+          const isSelected = tradition.id === selectedTradition;
+          return (
             <button
+              key={tradition.id}
               onClick={() => {
                 playSound('click');
-                setActiveTab('both');
+                setSelectedTradition(tradition.id);
               }}
-              className={`px-3 py-1.5 rounded-lg transition ${
-                activeTab === 'both' ? 'bg-white shadow text-indigo-600' : 'text-slate-600 hover:text-slate-900'
+              className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition ${
+                isSelected
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
               }`}
             >
-              Both Calendars
+              {tradition.name}
             </button>
-            <button
-              onClick={() => {
-                playSound('click');
-                setActiveTab('gu');
-              }}
-              className={`px-3 py-1.5 rounded-lg transition ${
-                activeTab === 'gu' ? 'bg-white shadow text-indigo-600' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Gujarati ({gujLearnedCount}/12)
-            </button>
-            <button
-              onClick={() => {
-                playSound('click');
-                setActiveTab('hi');
-              }}
-              className={`px-3 py-1.5 rounded-lg transition ${
-                activeTab === 'hi' ? 'bg-white shadow text-indigo-600' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Hindi ({hinLearnedCount}/12)
-            </button>
-          </div>
-        </div>
+          );
+        })}
       </div>
 
       {/* Progress banner */}
@@ -179,63 +174,34 @@ const LearnMonths = () => {
         <div className="flex justify-between items-center mb-1.5 text-xs font-semibold text-slate-600">
           <span className="flex items-center gap-1.5">
             <Sparkles size={14} className="text-amber-500" />
-            <span>Months Learned Progress</span>
+            <span>{activeTraditionData.name} Months Learned</span>
           </span>
           <span className="font-bold text-indigo-600">
-            {totalLearned} / 24 ({Math.round((totalLearned / 24) * 100)}%)
+            {traditionLearnedCount} / 12 ({Math.round((traditionLearnedCount / 12) * 100)}%)
           </span>
         </div>
         <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
           <div
             className="bg-gradient-to-r from-purple-500 to-indigo-500 h-full rounded-full transition-all duration-500"
-            style={{ width: `${(totalLearned / 24) * 100}%` }}
+            style={{ width: `${(traditionLearnedCount / 12) * 100}%` }}
           />
         </div>
       </div>
 
-      {/* Calendars Container */}
-      <div className="space-y-8">
-        {(activeTab === 'both' || activeTab === 'gu') && (
-          <div>
-            <div className="flex items-center justify-between mb-4 border-b border-slate-200 pb-2">
-              <div>
-                <h2 className="text-xl font-black text-slate-800">
-                  ગુજરાતી મહિના (Gujarati Months)
-                </h2>
-                <p className="text-xs text-slate-500">
-                  Vikram Samvat calendar starts with Kartik immediately following Diwali
-                </p>
-              </div>
-              <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg">
-                {gujLearnedCount} / 12 Learned
-              </span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {gujaratiMonths.map((m) => renderMonthCard(m, 'gu'))}
-            </div>
-          </div>
-        )}
+      {/* Month Cards Grid */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+          <h2 className="text-xl font-black text-slate-800">
+            {activeTraditionData.name}
+          </h2>
+          <span className="text-xs text-slate-500 font-medium">
+            Total across all calendars learned: <strong>{totalLearned}</strong>
+          </span>
+        </div>
 
-        {(activeTab === 'both' || activeTab === 'hi') && (
-          <div>
-            <div className="flex items-center justify-between mb-4 border-b border-slate-200 pb-2">
-              <div>
-                <h2 className="text-xl font-black text-slate-800">
-                  हिन्दी महीने (Hindi / Hindu Months)
-                </h2>
-                <p className="text-xs text-slate-500">
-                  Traditional Chaitradi calendar begins with Chaitra during Spring (March - April)
-                </p>
-              </div>
-              <span className="text-xs font-bold text-purple-600 bg-purple-50 px-2.5 py-1 rounded-lg">
-                {hinLearnedCount} / 12 Learned
-              </span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {hindiMonths.map((m) => renderMonthCard(m, 'hi'))}
-            </div>
-          </div>
-        )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {activeTraditionData.months.map((m) => renderMonthCard(m, activeTraditionData.id))}
+        </div>
       </div>
     </div>
   );

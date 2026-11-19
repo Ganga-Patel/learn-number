@@ -16,14 +16,18 @@ import {
   Search
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { numbersData } from '../data/numbers';
+import { numbersData, getNumberForLang, type NumberItem } from '../data/numbers';
 import { speakText } from '../utils/speech';
 import { playSound } from '../utils/sound';
+import { LanguageSelector } from '../components/LanguageSelector';
+import { getLanguageMeta } from '../data/languages';
 
 const Dashboard = () => {
-  const { username, progress, audioSpeed } = useStore();
+  const { username, progress, audioSpeed, selectedLanguage, setSelectedLanguage } = useStore();
   const [quickSearch, setQuickSearch] = useState('');
   const [activeVoiceNumber, setActiveVoiceNumber] = useState<number | null>(null);
+
+  const langMeta = getLanguageMeta(selectedLanguage);
 
   const accuracy = progress.totalAttempts > 0
     ? Math.round((progress.correctAttempts / progress.totalAttempts) * 100)
@@ -34,24 +38,23 @@ const Dashboard = () => {
   const numCount = progress.numbersLearned.length;
   const monthCount = progress.monthsLearned.length;
 
-  const handleSpeak = async (num: (typeof numbersData)[0], lang: 'gu' | 'hi') => {
+  const handleSpeak = async (num: NumberItem, langCode: string) => {
     playSound('click');
     setActiveVoiceNumber(num.english);
-    await speakText(lang === 'gu' ? num.gujaratiName : num.hindiName, lang, audioSpeed);
+    const detail = getNumberForLang(num, langCode);
+    await speakText(detail.name, langCode, audioSpeed);
     setActiveVoiceNumber(null);
   };
 
   const filteredNumbers = quickSearch.trim()
     ? numbersData.filter((item) => {
         const query = quickSearch.trim().toLowerCase();
+        const d = getNumberForLang(item, selectedLanguage);
         return (
           item.english.toString() === query ||
-          item.gujarati.includes(query) ||
-          item.hindi.includes(query) ||
-          item.gujaratiName.toLowerCase().includes(query) ||
-          item.hindiName.toLowerCase().includes(query) ||
-          item.gujaratiTranslit.toLowerCase().includes(query) ||
-          item.hindiTranslit.toLowerCase().includes(query)
+          d.digit.includes(query) ||
+          d.name.toLowerCase().includes(query) ||
+          d.translit.toLowerCase().includes(query)
         );
       }).slice(0, 4)
     : [];
@@ -120,35 +123,48 @@ const Dashboard = () => {
   return (
     <div className="space-y-8">
       {/* Hero Welcome Banner */}
-      <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+      <div className="bg-gradient-to-r from-indigo-700 via-purple-700 to-pink-600 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
         <div className="absolute right-0 bottom-0 translate-x-10 translate-y-10 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none" />
         <div className="relative z-10 max-w-2xl">
-          <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">
-            <Sparkles size={14} className="text-amber-300" />
-            <span>Interactive Gujarati & Hindi Learning</span>
+          <div className="flex flex-wrap items-center gap-2 mb-3">
+            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">
+              <Sparkles size={14} className="text-amber-300" />
+              <span>Pan-Indian Languages Learning</span>
+            </div>
+            <div className="inline-flex items-center gap-1.5 bg-amber-400/30 text-amber-200 px-3 py-1 rounded-full text-xs font-bold">
+              <span>{langMeta.icon} {langMeta.name} Mode</span>
+            </div>
           </div>
-          <h1 className="text-2xl sm:text-4xl font-black mb-2">
-            Welcome back, {username || 'Learner'}!
+
+          <h1 className="text-2xl sm:text-4xl font-black mb-1">
+            {langMeta.greeting}! Welcome back, {username || 'Learner'}!
           </h1>
           <p className="text-indigo-100 text-sm sm:text-base mb-6 leading-relaxed">
-            Continue mastering numbers 1-100, calendar months, and test your skills with quizzes and voice pronunciation.
+            Master 1-100 numbers and traditional calendars across 12 classical and regional Indian languages with quizzes, voice pronunciation, and flashcards.
           </p>
-          <div className="flex flex-wrap gap-3">
+
+          <div className="flex flex-wrap items-center gap-3">
             <Link
               to="/practice"
-              className="inline-flex items-center gap-2 bg-white text-indigo-700 hover:bg-amber-300 hover:text-indigo-950 font-bold px-5 py-2.5 rounded-xl shadow-lg transition"
+              className="inline-flex items-center gap-2 bg-white text-indigo-700 hover:bg-amber-300 hover:text-indigo-950 font-bold px-5 py-2.5 rounded-xl shadow-lg transition text-sm"
             >
               <Gamepad2 size={18} />
-              <span>Start Practice Quiz</span>
+              <span>Practice Quiz</span>
               <ArrowRight size={16} />
             </Link>
             <Link
               to="/flashcards"
-              className="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white font-semibold px-4 py-2.5 rounded-xl backdrop-blur-sm transition"
+              className="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white font-semibold px-4 py-2.5 rounded-xl backdrop-blur-sm transition text-sm"
             >
               <Layers size={18} />
-              <span>Flip Flashcards</span>
+              <span>Flashcards</span>
             </Link>
+
+            <LanguageSelector
+              currentLang={selectedLanguage}
+              onSelect={(code) => setSelectedLanguage(code)}
+              className="ml-auto"
+            />
           </div>
         </div>
       </div>
@@ -194,7 +210,7 @@ const Dashboard = () => {
           <div>
             <div className="flex items-baseline gap-2 mb-2">
               <span className="text-3xl font-black text-slate-800">{monthCount}</span>
-              <span className="text-xs font-medium text-slate-400">/ 24 learned</span>
+              <span className="text-xs font-medium text-slate-400">months learned</span>
             </div>
             <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
               <div
@@ -264,10 +280,10 @@ const Dashboard = () => {
             <div>
               <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
                 <Search size={18} className="text-indigo-600" />
-                <span>Instant Number Lookup</span>
+                <span>Instant Number Lookup ({langMeta.name})</span>
               </h2>
               <p className="text-xs text-slate-500">
-                Type any number (1-100) or word to hear pronunciation and see Gujarati & Hindi scripts.
+                Type any number (1-100) or word to hear pronunciation and view script.
               </p>
             </div>
           </div>
@@ -277,57 +293,51 @@ const Dashboard = () => {
               type="text"
               value={quickSearch}
               onChange={(e) => setQuickSearch(e.target.value)}
-              placeholder="e.g. 15, pandar, પંદર, पंद्रह, 25..."
+              placeholder="e.g. 15, 25, 50, 100..."
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition"
             />
           </div>
 
           {filteredNumbers.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {filteredNumbers.map((num) => (
-                <div
-                  key={num.english}
-                  className="p-3.5 bg-slate-50 border border-slate-200/70 rounded-xl flex items-center justify-between hover:bg-indigo-50/50 hover:border-indigo-200 transition"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-sm font-mono">
-                      {num.english}
-                    </span>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-indigo-900">{num.gujaratiName}</span>
-                        <span className="text-xs bg-indigo-100/70 text-indigo-700 px-1.5 py-0.5 rounded font-mono">
-                          {num.gujarati}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-slate-500">
-                        <span>Hindi: {num.hindiName}</span>
-                        <span className="font-mono">({num.hindi})</span>
+              {filteredNumbers.map((num) => {
+                const detail = getNumberForLang(num, selectedLanguage);
+                return (
+                  <div
+                    key={num.english}
+                    className="p-3.5 bg-slate-50 border border-slate-200/70 rounded-xl flex items-center justify-between hover:bg-indigo-50/50 hover:border-indigo-200 transition"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-sm font-mono">
+                        {num.english}
+                      </span>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-indigo-900">{detail.name}</span>
+                          <span className="text-xs bg-indigo-100/70 text-indigo-700 px-1.5 py-0.5 rounded font-mono">
+                            {detail.digit}
+                          </span>
+                        </div>
+                        <div className="text-xs text-slate-500 font-mono">
+                          {detail.translit}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-1">
+
                     <button
-                      onClick={() => handleSpeak(num, 'gu')}
-                      className={`p-1.5 rounded-lg border text-xs flex items-center gap-1 transition ${
+                      onClick={() => handleSpeak(num, selectedLanguage)}
+                      className={`p-2 rounded-lg border text-xs flex items-center gap-1 transition ${
                         activeVoiceNumber === num.english
                           ? 'bg-indigo-600 text-white'
                           : 'bg-white text-indigo-600 border-slate-200 hover:bg-indigo-50'
                       }`}
-                      title="Listen in Gujarati"
+                      title={`Listen in ${langMeta.name}`}
                     >
-                      <Volume2 size={13} /> Guj
-                    </button>
-                    <button
-                      onClick={() => handleSpeak(num, 'hi')}
-                      className="p-1.5 rounded-lg border border-slate-200 bg-white text-purple-600 hover:bg-purple-50 text-xs flex items-center gap-1 transition"
-                      title="Listen in Hindi"
-                    >
-                      <Volume2 size={13} /> Hin
+                      <Volume2 size={14} /> Listen
                     </button>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : quickSearch.trim() ? (
             <p className="text-xs text-slate-400 text-center py-4">No matching numbers found for "{quickSearch}".</p>

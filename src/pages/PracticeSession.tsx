@@ -14,12 +14,13 @@ import {
   HelpCircle,
   Headphones
 } from 'lucide-react';
-import { numbersData, type NumberItem } from '../data/numbers';
-import { gujaratiMonths, hindiMonths } from '../data/months';
+import { numbersData, getNumberForLang, type NumberItem } from '../data/numbers';
+import { getMonthsForLanguage } from '../data/months';
 import { useStore } from '../store/useStore';
 import { speakText } from '../utils/speech';
 import { playSound } from '../utils/sound';
 import { checkAnswerMatch } from '../utils/transliterate';
+import { getLanguageMeta } from '../data/languages';
 
 interface QuizOption {
   id: string | number;
@@ -34,7 +35,7 @@ interface QuestionItem {
   promptSub: string;
   correctAnswerText: string;
   audioText: string;
-  audioLang: 'gu' | 'hi';
+  audioLang: string;
   acceptedAnswers: string[];
   options?: QuizOption[];
 }
@@ -50,11 +51,13 @@ const TOTAL_QUESTIONS = 10;
 
 const buildQuestion = (
   category: 'numbers' | 'months',
-  lang: 'gu' | 'hi',
+  lang: string,
   level: 'easy' | 'medium' | 'hard' | 'listening'
 ): QuestionItem => {
+  const langMeta = getLanguageMeta(lang);
+
   if (category === 'months') {
-    const monthPool = lang === 'gu' ? gujaratiMonths : hindiMonths;
+    const monthPool = getMonthsForLanguage(lang);
     const target = monthPool[Math.floor(Math.random() * monthPool.length)];
 
     const accepted = [
@@ -80,7 +83,7 @@ const buildQuestion = (
     }
 
     return {
-      promptTitle: `Traditional Month #${target.order}`,
+      promptTitle: `${langMeta.name} Traditional Month #${target.order}`,
       promptDisplay: target.english,
       promptSub: `Gregorian: ${target.gregorian} • ${target.season}`,
       correctAnswerText: `${target.native} (${target.transliteration})`,
@@ -92,17 +95,14 @@ const buildQuestion = (
   } else {
     // Numbers 1-100
     const target = numbersData[Math.floor(Math.random() * numbersData.length)];
-    const nativeWord = lang === 'gu' ? target.gujaratiName : target.hindiName;
-    const nativeDigit = lang === 'gu' ? target.gujarati : target.hindi;
-    const translit = lang === 'gu' ? target.gujaratiTranslit : target.hindiTranslit;
-    const phonetics = lang === 'gu' ? target.phonetics.gu : target.phonetics.hi;
+    const detail = getNumberForLang(target, lang);
 
     const accepted = [
       target.english.toString(),
-      nativeDigit,
-      nativeWord,
-      translit,
-      ...phonetics,
+      detail.digit,
+      detail.name,
+      detail.translit,
+      ...detail.phonetics,
     ];
 
     let opts: QuizOption[] = [];
@@ -115,20 +115,23 @@ const buildQuestion = (
         }
       }
       const rawOptions = [target, ...distractors].sort(() => Math.random() - 0.5);
-      opts = rawOptions.map((num) => ({
-        id: num.english,
-        label: lang === 'gu' ? num.gujaratiName : num.hindiName,
-        sublabel: `${lang === 'gu' ? num.gujaratiTranslit : num.hindiTranslit} • ${lang === 'gu' ? num.gujarati : num.hindi}`,
-        isCorrect: num.english === target.english,
-      }));
+      opts = rawOptions.map((num) => {
+        const d = getNumberForLang(num, lang);
+        return {
+          id: num.english,
+          label: d.name,
+          sublabel: `${d.translit} • ${d.digit}`,
+          isCorrect: num.english === target.english,
+        };
+      });
     }
 
     return {
       promptTitle: `Number #${target.english}`,
       promptDisplay: target.english.toString(),
-      promptSub: `What is the ${lang === 'gu' ? 'Gujarati' : 'Hindi'} word?`,
-      correctAnswerText: `${nativeWord} (${translit} / ${nativeDigit})`,
-      audioText: nativeWord,
+      promptSub: `What is the ${langMeta.name} (${langMeta.nativeName}) word?`,
+      correctAnswerText: `${detail.name} (${detail.translit} / ${detail.digit})`,
+      audioText: detail.name,
       audioLang: lang,
       acceptedAnswers: accepted,
       options: opts,
@@ -139,14 +142,16 @@ const buildQuestion = (
 const PracticeSession = () => {
   const params = useParams();
   const navigate = useNavigate();
-  const { updateScore, recordAttempt, audioSpeed } = useStore();
+  const { updateScore, recordAttempt, audioSpeed, selectedLanguage } = useStore();
 
   const category = (params.category === 'months' || params.category === 'numbers')
     ? params.category
     : 'numbers';
 
-  const lang = (params.lang === 'hi' || params.category === 'hi') ? 'hi' : 'gu';
+  const lang = params.lang || (params.category && params.category !== 'numbers' && params.category !== 'months' ? params.category : selectedLanguage) || 'hi';
   const level = (params.level || 'easy') as 'easy' | 'medium' | 'hard' | 'listening';
+
+  const langMeta = getLanguageMeta(lang);
 
   const [questionIndex, setQuestionIndex] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState<QuestionItem>(() =>
@@ -269,7 +274,7 @@ const PracticeSession = () => {
     try {
       const recognition = new SpeechRecognitionClass();
       recognitionRef.current = recognition;
-      recognition.lang = lang === 'gu' ? 'gu-IN' : 'hi-IN';
+      recognition.lang = langMeta.speechCode;
       recognition.interimResults = false;
       recognition.maxAlternatives = 3;
 
@@ -343,7 +348,7 @@ const PracticeSession = () => {
         <div>
           <h2 className="text-3xl font-black text-slate-800 tracking-tight">Round Complete!</h2>
           <p className="text-slate-500 text-sm mt-1">
-            Excellent effort on {lang === 'gu' ? 'Gujarati' : 'Hindi'} {category} practice.
+            Excellent effort on {langMeta.name} ({langMeta.nativeName}) {category} practice.
           </p>
         </div>
 
@@ -424,7 +429,7 @@ const PracticeSession = () => {
       <div className="flex items-center justify-between">
         <div>
           <span className="text-xs font-black uppercase tracking-wider text-indigo-600">
-            {lang === 'gu' ? 'Gujarati' : 'Hindi'} • {category} • {level}
+            {langMeta.icon} {langMeta.name} ({langMeta.nativeName}) • {category} • {level}
           </span>
           <h2 className="text-xl font-black text-slate-800">
             Question {questionIndex + 1} of {TOTAL_QUESTIONS}
@@ -525,7 +530,7 @@ const PracticeSession = () => {
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
                 disabled={feedback !== 'idle'}
-                placeholder={`Type in ${lang === 'gu' ? 'Gujarati' : 'Hindi'} or English sound...`}
+                placeholder={`Type in ${langMeta.name} or English sound...`}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && userInput.trim() && feedback === 'idle') {
                     handleAnswerSubmit(userInput);
@@ -583,7 +588,7 @@ const PracticeSession = () => {
             {isListening ? (
               <div className="space-y-1">
                 <p className="text-sm font-bold text-red-600 animate-pulse">Listening... speak now!</p>
-                <p className="text-xs text-slate-400">Say the word in {lang === 'gu' ? 'Gujarati' : 'Hindi'}</p>
+                <p className="text-xs text-slate-400">Say the word in {langMeta.name}</p>
               </div>
             ) : userInput ? (
               <p className="text-sm">

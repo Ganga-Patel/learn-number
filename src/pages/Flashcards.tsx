@@ -11,11 +11,13 @@ import {
   Calendar,
   Sparkles
 } from 'lucide-react';
-import { numbersData } from '../data/numbers';
-import { gujaratiMonths, hindiMonths } from '../data/months';
+import { numbersData, getNumberForLang } from '../data/numbers';
+import { getMonthsForLanguage } from '../data/months';
 import { useStore } from '../store/useStore';
 import { speakText } from '../utils/speech';
 import { playSound } from '../utils/sound';
+import { LanguageSelector } from '../components/LanguageSelector';
+import { getLanguageMeta, type LanguageCode } from '../data/languages';
 
 interface CardItem {
   id: string | number;
@@ -26,37 +28,41 @@ interface CardItem {
   backTranslit: string;
   backSub: string;
   audioText: string;
-  audioLang: 'gu' | 'hi';
+  audioLang: string;
   isLearned: boolean;
   onToggleLearned: () => void;
 }
 
 const Flashcards = () => {
-  const { progress, toggleNumberLearned, toggleMonthLearned, audioSpeed } = useStore();
+  const { progress, toggleNumberLearned, toggleMonthLearned, audioSpeed, selectedLanguage, setSelectedLanguage } = useStore();
   const [category, setCategory] = useState<'numbers' | 'months'>('numbers');
-  const [lang, setLang] = useState<'gu' | 'hi'>('gu');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [shuffledIndices, setShuffledIndices] = useState<number[] | null>(null);
 
+  const langMeta = getLanguageMeta(selectedLanguage);
+
   // Derive card deck using useMemo
   const rawDeck = useMemo<CardItem[]>(() => {
     if (category === 'numbers') {
-      return numbersData.map((num) => ({
-        id: num.english,
-        front: num.english.toString(),
-        frontSub: `Number #${num.english}`,
-        backTitle: lang === 'gu' ? num.gujarati : num.hindi,
-        backNative: lang === 'gu' ? num.gujaratiName : num.hindiName,
-        backTranslit: lang === 'gu' ? num.gujaratiTranslit : num.hindiTranslit,
-        backSub: `${lang === 'gu' ? 'Gujarati' : 'Hindi'} translation`,
-        audioText: lang === 'gu' ? num.gujaratiName : num.hindiName,
-        audioLang: lang,
-        isLearned: progress.numbersLearned.includes(num.english),
-        onToggleLearned: () => toggleNumberLearned(num.english),
-      }));
+      return numbersData.map((num) => {
+        const detail = getNumberForLang(num, selectedLanguage);
+        return {
+          id: num.english,
+          front: num.english.toString(),
+          frontSub: `Number #${num.english}`,
+          backTitle: detail.digit,
+          backNative: detail.name,
+          backTranslit: detail.translit,
+          backSub: `${langMeta.name} (${langMeta.nativeName}) translation`,
+          audioText: detail.name,
+          audioLang: selectedLanguage,
+          isLearned: progress.numbersLearned.includes(num.english),
+          onToggleLearned: () => toggleNumberLearned(num.english),
+        };
+      });
     } else {
-      const monthPool = lang === 'gu' ? gujaratiMonths : hindiMonths;
+      const monthPool = getMonthsForLanguage(selectedLanguage);
       return monthPool.map((month) => ({
         id: month.id,
         front: month.english,
@@ -66,12 +72,12 @@ const Flashcards = () => {
         backTranslit: month.transliteration,
         backSub: `Season: ${month.season} • Festivals: ${month.festival}`,
         audioText: month.native,
-        audioLang: lang,
+        audioLang: selectedLanguage,
         isLearned: progress.monthsLearned.includes(month.id),
         onToggleLearned: () => toggleMonthLearned(month.id),
       }));
     }
-  }, [category, lang, progress.numbersLearned, progress.monthsLearned, toggleNumberLearned, toggleMonthLearned]);
+  }, [category, selectedLanguage, langMeta, progress.numbersLearned, progress.monthsLearned, toggleNumberLearned, toggleMonthLearned]);
 
   const cardDeck = useMemo(() => {
     if (!shuffledIndices || shuffledIndices.length !== rawDeck.length) {
@@ -89,9 +95,9 @@ const Flashcards = () => {
     setShuffledIndices(null);
   };
 
-  const handleLangChange = (newLang: 'gu' | 'hi') => {
+  const handleLangChange = (newLang: LanguageCode) => {
     playSound('click');
-    setLang(newLang);
+    setSelectedLanguage(newLang);
     setIsFlipped(false);
   };
 
@@ -165,7 +171,7 @@ const Flashcards = () => {
           Interactive Flashcards
         </h1>
         <p className="text-xs sm:text-sm text-slate-500">
-          Flip cards to test recall. Press Space to flip, arrows to navigate.
+          Flip cards to test recall in <strong>{langMeta.name} ({langMeta.nativeName})</strong>. Press Space to flip.
         </p>
       </div>
 
@@ -191,25 +197,11 @@ const Flashcards = () => {
           </button>
         </div>
 
-        {/* Language */}
-        <div className="flex bg-slate-200/80 p-1 rounded-xl text-xs font-bold">
-          <button
-            onClick={() => handleLangChange('gu')}
-            className={`px-3 py-1.5 rounded-lg transition ${
-              lang === 'gu' ? 'bg-white shadow text-indigo-700' : 'text-slate-600'
-            }`}
-          >
-            Gujarati
-          </button>
-          <button
-            onClick={() => handleLangChange('hi')}
-            className={`px-3 py-1.5 rounded-lg transition ${
-              lang === 'hi' ? 'bg-white shadow text-indigo-700' : 'text-slate-600'
-            }`}
-          >
-            Hindi
-          </button>
-        </div>
+        {/* Language Selector Dropdown */}
+        <LanguageSelector
+          currentLang={selectedLanguage}
+          onSelect={handleLangChange}
+        />
 
         <button
           onClick={handleShuffle}
@@ -219,6 +211,13 @@ const Flashcards = () => {
           <Shuffle size={14} /> Shuffle
         </button>
       </div>
+
+      {/* Language Quick Pills Bar */}
+      <LanguageSelector
+        currentLang={selectedLanguage}
+        onSelect={handleLangChange}
+        variant="pills"
+      />
 
       {/* Card Counter & Progress */}
       <div className="flex justify-between items-center text-xs font-bold text-slate-500 px-2">
@@ -272,7 +271,7 @@ const Flashcards = () => {
             </div>
 
             <div className="flex items-center gap-1 text-xs text-slate-400 font-medium">
-              <RotateCw size={13} /> Tap anywhere to reveal {lang === 'gu' ? 'Gujarati' : 'Hindi'} translation
+              <RotateCw size={13} /> Tap anywhere to reveal {langMeta.name} ({langMeta.nativeName}) translation
             </div>
           </div>
 
@@ -288,7 +287,7 @@ const Flashcards = () => {
           >
             <div className="flex items-center justify-between w-full">
               <span className="text-xs font-black uppercase tracking-wider text-indigo-600">
-                Back • {lang === 'gu' ? 'Gujarati' : 'Hindi'} Answer
+                Back • {langMeta.name} Answer
               </span>
               <button
                 onClick={handleMarkLearned}
