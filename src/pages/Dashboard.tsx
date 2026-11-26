@@ -18,7 +18,6 @@ import {
 import { Link } from 'react-router-dom';
 import { numbersData, getNumberForLang, type NumberItem } from '../data/numbers';
 import { speakText } from '../utils/speech';
-import { playSound } from '../utils/sound';
 import { LanguageSelector } from '../components/LanguageSelector';
 import { getLanguageMeta } from '../data/languages';
 
@@ -39,10 +38,9 @@ const Dashboard = () => {
   const monthCount = progress.monthsLearned.length;
 
   const handleSpeak = async (num: NumberItem, langCode: string) => {
-    playSound('click');
     setActiveVoiceNumber(num.english);
     const detail = getNumberForLang(num, langCode);
-    await speakText(detail.name, langCode, audioSpeed);
+    await speakText(detail.name, langCode, audioSpeed, detail.translit);
     setActiveVoiceNumber(null);
   };
 

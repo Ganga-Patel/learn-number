@@ -132,8 +132,7 @@ const Flashcards = () => {
   const handleSpeak = useCallback((e?: React.MouseEvent) => {
     e?.stopPropagation();
     if (!currentCard) return;
-    playSound('click');
-    speakText(currentCard.audioText, currentCard.audioLang, audioSpeed);
+    speakText(currentCard.audioText, currentCard.audioLang, audioSpeed, currentCard.backTranslit);
   }, [currentCard, audioSpeed]);
 
   const handleMarkLearned = (e?: React.MouseEvent) => {

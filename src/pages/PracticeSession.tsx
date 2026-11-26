@@ -36,6 +36,7 @@ interface QuestionItem {
   correctAnswerText: string;
   audioText: string;
   audioLang: string;
+  audioFallback: string;
   acceptedAnswers: string[];
   options?: QuizOption[];
 }
@@ -89,6 +90,7 @@ const buildQuestion = (
       correctAnswerText: `${target.native} (${target.transliteration})`,
       audioText: target.native,
       audioLang: lang,
+      audioFallback: target.transliteration,
       acceptedAnswers: accepted,
       options: opts,
     };
@@ -133,6 +135,7 @@ const buildQuestion = (
       correctAnswerText: `${detail.name} (${detail.translit} / ${detail.digit})`,
       audioText: detail.name,
       audioLang: lang,
+      audioFallback: detail.translit,
       acceptedAnswers: accepted,
       options: opts,
     };
@@ -188,7 +191,7 @@ const PracticeSession = () => {
 
     if (level === 'listening') {
       setTimeout(() => {
-        speakText(q.audioText, q.audioLang, audioSpeed);
+        speakText(q.audioText, q.audioLang, audioSpeed, q.audioFallback);
       }, 300);
     }
 
@@ -201,7 +204,7 @@ const PracticeSession = () => {
   useEffect(() => {
     if (level === 'listening' && currentQuestion) {
       const timer = setTimeout(() => {
-        speakText(currentQuestion.audioText, currentQuestion.audioLang, audioSpeed);
+        speakText(currentQuestion.audioText, currentQuestion.audioLang, audioSpeed, currentQuestion.audioFallback);
       }, 400);
       return () => clearTimeout(timer);
     }
@@ -249,8 +252,7 @@ const PracticeSession = () => {
 
   const handlePlayPromptAudio = () => {
     if (!currentQuestion) return;
-    playSound('click');
-    speakText(currentQuestion.audioText, currentQuestion.audioLang, audioSpeed);
+    speakText(currentQuestion.audioText, currentQuestion.audioLang, audioSpeed, currentQuestion.audioFallback);
   };
 
   const toggleSpeechRecognition = () => {

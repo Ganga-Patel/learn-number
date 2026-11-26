@@ -17,6 +17,7 @@ import { useStore } from '../store/useStore';
 import { speakText } from '../utils/speech';
 import { playSound } from '../utils/sound';
 import { LanguageSelector } from '../components/LanguageSelector';
+import { VoiceStatusNote } from '../components/VoiceStatusNote';
 import { getLanguageMeta, type LanguageCode } from '../data/languages';
 
 const LearnNumbers = () => {
@@ -63,10 +64,9 @@ const LearnNumbers = () => {
 
   const handleSpeak = async (num: NumberItem, e?: React.MouseEvent) => {
     e?.stopPropagation();
-    playSound('click');
     setActiveSpeakingNum(num.english);
     const detail = getNumberForLang(num, selectedLanguage);
-    await speakText(detail.name, selectedLanguage, audioSpeed);
+    await speakText(detail.name, selectedLanguage, audioSpeed, detail.translit);
     setActiveSpeakingNum(null);
   };
 
@@ -135,6 +135,13 @@ const LearnNumbers = () => {
         onSelect={(code: LanguageCode) => setSelectedLanguage(code)}
         variant="pills"
         className="pt-1"
+      />
+
+      {/* Voice Support / Phonetic Fallback Notice */}
+      <VoiceStatusNote
+        lang={selectedLanguage}
+        sampleText={getNumberForLang(numbersData[0], selectedLanguage).name}
+        sampleTranslit={getNumberForLang(numbersData[0], selectedLanguage).translit}
       />
 
       {/* Progress Bar Header */}

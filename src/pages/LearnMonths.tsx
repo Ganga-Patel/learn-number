@@ -14,6 +14,7 @@ import { calendarTraditions, type MonthItem } from '../data/months';
 import { useStore } from '../store/useStore';
 import { speakText } from '../utils/speech';
 import { playSound } from '../utils/sound';
+import { VoiceStatusNote } from '../components/VoiceStatusNote';
 
 const LearnMonths = () => {
   const { toggleMonthLearned, progress, audioSpeed, selectedLanguage } = useStore();
@@ -27,9 +28,8 @@ const LearnMonths = () => {
 
   const handleSpeak = async (month: MonthItem, lang: string, e?: React.MouseEvent) => {
     e?.stopPropagation();
-    playSound('click');
     setActiveSpeakingMonth(month.id);
-    await speakText(month.native, lang, audioSpeed);
+    await speakText(month.native, lang, audioSpeed, month.transliteration);
     setActiveSpeakingMonth(null);
   };
 
@@ -168,6 +168,12 @@ const LearnMonths = () => {
           );
         })}
       </div>
+
+      <VoiceStatusNote
+        lang={activeTraditionData.id}
+        sampleText={activeTraditionData.months[0].native}
+        sampleTranslit={activeTraditionData.months[0].transliteration}
+      />
 
       {/* Progress banner */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">

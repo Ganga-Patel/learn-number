@@ -30,10 +30,9 @@ const NumberLookup = () => {
   const primaryMeta = getLanguageMeta(selectedLanguage);
 
   const handleSpeak = async (lang: string) => {
-    playSound('click');
     setActiveSpeechLang(lang);
     const detail = getNumberForLang(numData, lang);
-    await speakText(detail.name, lang, audioSpeed);
+    await speakText(detail.name, lang, audioSpeed, detail.translit);
     setActiveSpeechLang(null);
   };
 
